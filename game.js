@@ -16,16 +16,17 @@ document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
 canvas.addEventListener("touchstart", e => {
-  const touchX = e.touches[0].clientX;
   const canvasRect = canvas.getBoundingClientRect();
-  const relativeX = touchX - canvasRect.left;
+  const touchX = e.touches[0].clientX - canvasRect.left;
+  const canvasWidth = canvasRect.width;
 
-  if (relativeX < canvas.width / 2) {
+  if (touchX < canvasWidth / 2) {
     touchDirection = "left";
   } else {
     touchDirection = "right";
   }
 });
+
 
 canvas.addEventListener("touchend", () => {
   touchDirection = null;
