@@ -1,20 +1,38 @@
-let touchDirection = null;
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-
-// Dimensions internes fixes
 canvas.width = 800;
 canvas.height = 600;
 
 const keys = {};
+let touchDirection = null;
+let scoreDisplay = document.getElementById("scoreDisplay");
+if (!scoreDisplay) {
+  scoreDisplay = document.createElement("div");
+  scoreDisplay.id = "scoreDisplay";
+  document.body.appendChild(scoreDisplay);
+}
+
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
-const restartBtn = document.getElementById("restartBtn");
+canvas.addEventListener("touchstart", e => {
+  const touchX = e.touches[0].clientX;
+  const canvasRect = canvas.getBoundingClientRect();
+  const relativeX = touchX - canvasRect.left;
 
-restartBtn.addEventListener("click", () => {
-  resetGame();
+  if (relativeX < canvas.width / 2) {
+    touchDirection = "left";
+  } else {
+    touchDirection = "right";
+  }
 });
+
+canvas.addEventListener("touchend", () => {
+  touchDirection = null;
+});
+
+const restartBtn = document.getElementById("restartBtn");
+restartBtn.addEventListener("click", () => resetGame());
 
 // === Joueur ===
 class Player {
@@ -32,24 +50,23 @@ class Player {
   }
 
   move() {
-  if (keys["ArrowLeft"] || keys["a"] || touchDirection === "left") {
-    this.x -= this.speed;
+    if (keys["ArrowLeft"] || keys["a"] || touchDirection === "left") {
+      this.x -= this.speed;
+    }
+    if (keys["ArrowRight"] || keys["d"] || touchDirection === "right") {
+      this.x += this.speed;
+    }
+    this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
   }
-  if (keys["ArrowRight"] || keys["d"] || touchDirection === "right") {
-    this.x += this.speed;
-  }
-  this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
-}
-
 
   dash() {
-    if (keys[" "] && !this.dashCooldown) {
+    if ((keys[" "] || keys["Space"]) && !this.dashCooldown) {
       this.isDashing = true;
       this.color = "#fff";
 
       let direction = 0;
-      if (keys["ArrowRight"] || keys["d"]) direction = 1;
-      else if (keys["ArrowLeft"] || keys["a"]) direction = -1;
+      if (keys["ArrowRight"] || keys["d"] || touchDirection === "right") direction = 1;
+      else if (keys["ArrowLeft"] || keys["a"] || touchDirection === "left") direction = -1;
       else direction = Math.random() < 0.5 ? -1 : 1;
 
       this.x += 100 * direction;
@@ -192,23 +209,6 @@ function update() {
     }
   });
 
-  canvas.addEventListener("touchstart", e => {
-  const touchX = e.touches[0].clientX;
-  const canvasRect = canvas.getBoundingClientRect();
-  const relativeX = touchX - canvasRect.left;
-
-  if (relativeX < canvas.width / 2) {
-    touchDirection = "left";
-  } else {
-    touchDirection = "right";
-  }
-});
-
-canvas.addEventListener("touchend", () => {
-  touchDirection = null;
-});
-
-
   obstacles = obstacles.filter(ob => !ob.markedForDeletion);
 
   energyFields.forEach(field => {
@@ -224,9 +224,7 @@ canvas.addEventListener("touchend", () => {
   energyFields = energyFields.filter(field => !field.collected);
 
   score++;
-  ctx.fillStyle = "#fff";
-  ctx.font = "20px Arial";
-  ctx.fillText("Score: " + score, 10, 30);
+  scoreDisplay.textContent = "Score: " + score;
 
   requestAnimationFrame(update);
 }
