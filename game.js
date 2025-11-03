@@ -1,3 +1,5 @@
+let touchDirection = null;
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -27,10 +29,15 @@ class Player {
   }
 
   move() {
-    if (keys["ArrowLeft"] || keys["a"]) this.x -= this.speed;
-    if (keys["ArrowRight"] || keys["d"]) this.x += this.speed;
-    this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
+  if (keys["ArrowLeft"] || keys["a"] || touchDirection === "left") {
+    this.x -= this.speed;
   }
+  if (keys["ArrowRight"] || keys["d"] || touchDirection === "right") {
+    this.x += this.speed;
+  }
+  this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
+}
+
 
   dash() {
     if (keys[" "] && !this.dashCooldown) {
@@ -181,6 +188,23 @@ function update() {
       return;
     }
   });
+
+  canvas.addEventListener("touchstart", e => {
+  const touchX = e.touches[0].clientX;
+  const canvasRect = canvas.getBoundingClientRect();
+  const relativeX = touchX - canvasRect.left;
+
+  if (relativeX < canvas.width / 2) {
+    touchDirection = "left";
+  } else {
+    touchDirection = "right";
+  }
+});
+
+canvas.addEventListener("touchend", () => {
+  touchDirection = null;
+});
+
 
   obstacles = obstacles.filter(ob => !ob.markedForDeletion);
 
