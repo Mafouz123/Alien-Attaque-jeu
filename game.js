@@ -30,6 +30,20 @@ class Player {
     if (keys[" "] && !this.dashCooldown) {
       this.isDashing = true;
       this.color = "#fff";
+       // Détection direction
+    let direction = 0;
+    if (keys["ArrowRight"] || keys["d"]) direction = 1;
+    else if (keys["ArrowLeft"] || keys["a"]) direction = -1;
+    else direction = Math.random() < 0.5 ? -1 : 1; // direction aléatoire si aucune touche
+
+    this.x += 100 * direction;
+    this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
+
+    this.dashCooldown = true;
+    setTimeout(() => this.isDashing = false, 200);
+    setTimeout(() => {
+      this.color = "#0ff";
+      this.dashCooldown = false;
       this.x += 100 * (keys["ArrowRight"] || keys["d"] ? 1 : -1);
       this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
       this.dashCooldown = true;
@@ -64,6 +78,17 @@ class Obstacle {
   }
 
   update() {
+    if (isColliding(player, ob) && !player.isDashing) {
+  gameOver = true;
+  restartBtn.style.display = "block";
+  ctx.fillStyle = "#f00";
+  ctx.font = "40px Arial";
+  ctx.fillText("GAME OVER", canvas.width / 2 - 120, canvas.height / 2);
+  ctx.font = "20px Arial";
+  ctx.fillText("Score: " + score, canvas.width / 2 - 40, canvas.height / 2 + 40);
+  return;
+}
+
     this.y += this.speed;
     if (this.y > canvas.height) {
       this.markedForDeletion = true;
@@ -150,6 +175,24 @@ function update() {
       alert("Game Over! Score: " + score);
     }
   });
+  const restartBtn = document.getElementById("restartBtn");
+
+restartBtn.addEventListener("click", () => {
+  resetGame();
+});
+
+function resetGame() {
+  obstacles = [];
+  energyFields = [];
+  score = 0;
+  gameOver = false;
+  player.x = canvas.width / 2 - player.width / 2;
+  player.speed = player.baseSpeed;
+  restartBtn.style.display = "none";
+  spawnObstacles();
+  update();
+}
+
 
   obstacles = obstacles.filter(ob => !ob.markedForDeletion);
 
