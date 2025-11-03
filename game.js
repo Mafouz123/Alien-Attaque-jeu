@@ -1,7 +1,10 @@
 let touchDirection = null;
-
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+
+// Dimensions internes fixes
+canvas.width = 800;
+canvas.height = 600;
 
 const keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
